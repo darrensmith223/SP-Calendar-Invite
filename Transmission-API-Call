@@ -1,0 +1,30 @@
+{
+    "options": {
+        "open_tracking": true,
+        "click_tracking": true
+    },
+    "campaign_id": "test",
+    "recipients": [
+        {
+            "address": {
+                "email": "recipient@example.com",
+                "name": "test recipient"
+            }
+        }
+    ],
+    "content": {
+        "from": {
+            "email": "organizer@example.com"
+        },
+        "subject": "Testing Invite",
+        "text": "Sample Calendar Invite",
+        "html": "<html><p>Here is a sample calendar invite</p></html>",
+        "attachments": [
+            {
+                "name": "invite.ics",
+                "type": "application/ics; name=\"invite.ics\"",
+                "data": "QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KQ0FMU0NBTEU6R1JFR09SSUFODQpNRVRIT0Q6UkVRVUVTVA0KQkVHSU46VkVWRU5UDQpEVFNUQVJUOjIwMjAxMTE5VDIyMDAwMFoNCkRURU5EOjIwMjAxMTE5VDIzMDAwMFoNCkRUU1RBTVA6MjAxOTAxMDlUMjEyNDQxWg0KT1JHQU5JWkVSO0NOPUphbmUgRG9lOm1haWx0bzpKYW5lQGV4YW1wbGUuY29tDQpVSUQ6MjA0QTNDQTYtOENDNS00MzJFLTk3NzgtMzQxOENBNDY3QUIzDQpBVFRFTkRFRTtDVVRZUEU9SU5ESVZJRFVBTDtST0xFPVJFUS1QQVJUSUNJUEFOVDtQQVJUU1RBVD1BQ0NFUFRFRDtSU1ZQPVRSVUUNCiA7Q049Sm9obiBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkpvaG5AZXhhbXBsZS5jb20NCkFUVEVOREVFO0NVVFlQRT1JTkRJVklEVUFMO1JPTEU9UkVRLVBBUlRJQ0lQQU5UO1BBUlRTVEFUPU5FRURTLUFDVElPTjtSU1ZQPQ0KIFRSVUU7Q049SmFuZSBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkphbmVAZXhhbXBsZS5jb20NCkNSRUFURUQ6MjAyMDExMTlUMjEyNDAyWg0KREVTQ1JJUFRJT046WW91ciBldmVudCBjb250ZW50DQpMQVNULU1PRElGSUVEOjIwMjAxMTE5VDIxMjQwMloNCkxPQ0FUSU9OOg0KU0VRVUVOQ0U6MA0KU1RBVFVTOkNPTkZJUk1FRA0KU1VNTUFSWTpUZXN0DQpUUkFOU1A6T1BBUVVFDQpYLUFQUExFLVRSQVZFTC1BRFZJU09SWS1CRUhBVklPUjpBVVRPTUFUSUMNCkVORDpWRVZFTlQNCkVORDpWQ0FMRU5EQVI="
+            }
+        ]
+    }
+}
