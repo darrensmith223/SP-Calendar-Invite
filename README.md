@@ -1,8 +1,10 @@
 # Sending Calendar Invites with SparkPost
 
-SparkPost supports a wide range of different message types, from marketing and bulk mailings, to transactional or trigger-based messages - even time sensitive messages such as those used for two factor authentication.  But how do you send a calendar invitation?   The trick is to send an email message with the invitation as a specially formatted attachment, called an iCalendar file, and this can be easily accomplished by using SparkPost.
+SparkPost supports a wide range of different message types, from marketing and bulk mailings, to transactional or trigger-based messages - even time sensitive messages such as those used for two factor authentication.  But how do you send a calendar invitation?  The trick is to send the invitation as an email message where the invitation is a specially formatted attachment, called an [iCalendar file](https://en.wikipedia.org/wiki/ICalendar).  
 
-The following document is a guide for how to send a calendar invite through SparkPost using the Transmissions API. 
+The following project aims to serve two purposes: 
+1. A guide for how to successfully send a calendar invitation through SparkPost using the [Transmissions API](https://developers.sparkpost.com/api/transmissions/).
+2. A Python application that will accept the invitation details and recipient information, construct the calendar event, and send the invite to the attendee.
 
 ## Steps
 The steps for sending a calendar invite through SparkPost are:
@@ -12,79 +14,86 @@ The steps for sending a calendar invite through SparkPost are:
 4. Send the transmission
 
 ### Creating a Calendar Invitation
-To create a calendar invitation, you will need to create an iCalendar file.  For this example, we are using the vCalendar format, which can be found below:
+To create a calendar invitation, you will need to create an iCalendar file.  For this example, the vCalendar format is used, of which an example can be found in the Samples folder.  The iCalendar file is where we define the attributes of the meeting, such as the start and end time. 
 
+In the Python application, the function `genCalInvite` is used to construct an invitation from the sample using the event and recipient details that are passed into the script.  The function then outputs the constructed invitation.
+
+It is important to ensure that a unique UID is assigned for the event.  In the Python application, a unique UID is generated for the calendar event by leveraging the `uuid` package in Python, which is then included in the iCalendar file.
+
+```Python
+import uuid
+
+uuidVal = str(uuid.uuid4())  # Create unique ID for calendar event
 ```
-BEGIN:VCALENDAR
-VERSION:2.0
-CALSCALE:GREGORIAN
-METHOD:REQUEST
-BEGIN:VEVENT
-DTSTART:20201119T220000Z
-DTEND:20201119T230000Z
-DTSTAMP:20190109T212441Z
-ORGANIZER;CN=Jane Doe:mailto:Jane@example.com
-UID:204A3CA6-8CC5-432E-9778-3418CA467AB3
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=TRUE
- ;CN=John Doe;X-NUM-GUESTS=0:mailto:John@example.com
-ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=
- TRUE;CN=Jane Doe;X-NUM-GUESTS=0:mailto:Jane@example.com
-CREATED:20201119T212402Z
-DESCRIPTION:Your event content
-LAST-MODIFIED:20201119T212402Z
-LOCATION:
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Test
-TRANSP:OPAQUE
-X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC
-END:VEVENT
-END:VCALENDAR
-```
+
 
 ### Encoding the Invitation
-The next step is to base64 encode the calendar invitation.  For this example, I used https://www.base64encode.net/ to encode and received the following output:
+The next step is to base64 encode the calendar invitation.  In this project, the `base64` package in Python is used to encode the invitation object.
 
+:Relevant Code Here
+```Python
+import base64
+
+calInviteBytes = calInvite.encode('ascii')  # Convert calendar invite into bytes
+base64Bytes = base64.b64encode(calInviteBytes)  # Base64 encode the invite bytes
+calObj = base64Bytes.decode('ascii')  # Convert encode back into ASCII, store as calendar object
 ```
-QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KQ0FMU0NBTEU6R1JFR09SSUFODQpNRVRIT0Q6UkVRVUVTVA0KQkVHSU46VkVWRU5UDQpEVFNUQVJUOjIwMjAxMTE5VDIyMDAwMFoNCkRURU5EOjIwMjAxMTE5VDIzMDAwMFoNCkRUU1RBTVA6MjAxOTAxMDlUMjEyNDQxWg0KT1JHQU5JWkVSO0NOPUphbmUgRG9lOm1haWx0bzpKYW5lQGV4YW1wbGUuY29tDQpVSUQ6MjA0QTNDQTYtOENDNS00MzJFLTk3NzgtMzQxOENBNDY3QUIzDQpBVFRFTkRFRTtDVVRZUEU9SU5ESVZJRFVBTDtST0xFPVJFUS1QQVJUSUNJUEFOVDtQQVJUU1RBVD1BQ0NFUFRFRDtSU1ZQPVRSVUUNCiA7Q049Sm9obiBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkpvaG5AZXhhbXBsZS5jb20NCkFUVEVOREVFO0NVVFlQRT1JTkRJVklEVUFMO1JPTEU9UkVRLVBBUlRJQ0lQQU5UO1BBUlRTVEFUPU5FRURTLUFDVElPTjtSU1ZQPQ0KIFRSVUU7Q049SmFuZSBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkphbmVAZXhhbXBsZS5jb20NCkNSRUFURUQ6MjAyMDExMTlUMjEyNDAyWg0KREVTQ1JJUFRJT046WW91ciBldmVudCBjb250ZW50DQpMQVNULU1PRElGSUVEOjIwMjAxMTE5VDIxMjQwMloNCkxPQ0FUSU9OOg0KU0VRVUVOQ0U6MA0KU1RBVFVTOkNPTkZJUk1FRA0KU1VNTUFSWTpUZXN0DQpUUkFOU1A6T1BBUVVFDQpYLUFQUExFLVRSQVZFTC1BRFZJU09SWS1CRUhBVklPUjpBVVRPTUFUSUMNCkVORDpWRVZFTlQNCkVORDpWQ0FMRU5EQVI=
-```
+
 
 ### Sending the Transmission
-We are now ready to send the invite through SparkPost.  To do this, we will use the Transmissions API and include the base64 encoded invitation as an attachment.  An example transmission can be found below: 
+We are now ready to send the invite through SparkPost.  To do this, we will use the Transmissions API and include the base64 encoded invitation as an attachment.  An example of the Transmissions API payload can be found in the Samples folder.
 
-```
-{
-    "options": {
-        "open_tracking": true,
-        "click_tracking": true
-    },
-    "campaign_id": "test",
-    "recipients": [
-        {
-            "address": {
-                "email": "recipient@example.com",
-                "name": "test recipient"
-            }
-        }
-    ],
-    "content": {
-        "from": {
-            "email": "organizer@example.com"
-        },
-        "subject": "Testing Invite",
-        "text": "Sample Calendar Invite",
-        "html": "<html><p>Here is a sample calendar invite</p></html>",
-        "attachments": [
-            {
-                "name": "invite.ics",
-                "type": "application/ics; name=\"invite.ics\"",
-                "data": "QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KQ0FMU0NBTEU6R1JFR09SSUFODQpNRVRIT0Q6UkVRVUVTVA0KQkVHSU46VkVWRU5UDQpEVFNUQVJUOjIwMjAxMTE5VDIyMDAwMFoNCkRURU5EOjIwMjAxMTE5VDIzMDAwMFoNCkRUU1RBTVA6MjAxOTAxMDlUMjEyNDQxWg0KT1JHQU5JWkVSO0NOPUphbmUgRG9lOm1haWx0bzpKYW5lQGV4YW1wbGUuY29tDQpVSUQ6MjA0QTNDQTYtOENDNS00MzJFLTk3NzgtMzQxOENBNDY3QUIzDQpBVFRFTkRFRTtDVVRZUEU9SU5ESVZJRFVBTDtST0xFPVJFUS1QQVJUSUNJUEFOVDtQQVJUU1RBVD1BQ0NFUFRFRDtSU1ZQPVRSVUUNCiA7Q049Sm9obiBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkpvaG5AZXhhbXBsZS5jb20NCkFUVEVOREVFO0NVVFlQRT1JTkRJVklEVUFMO1JPTEU9UkVRLVBBUlRJQ0lQQU5UO1BBUlRTVEFUPU5FRURTLUFDVElPTjtSU1ZQPQ0KIFRSVUU7Q049SmFuZSBEb2U7WC1OVU0tR1VFU1RTPTA6bWFpbHRvOkphbmVAZXhhbXBsZS5jb20NCkNSRUFURUQ6MjAyMDExMTlUMjEyNDAyWg0KREVTQ1JJUFRJT046WW91ciBldmVudCBjb250ZW50DQpMQVNULU1PRElGSUVEOjIwMjAxMTE5VDIxMjQwMloNCkxPQ0FUSU9OOg0KU0VRVUVOQ0U6MA0KU1RBVFVTOkNPTkZJUk1FRA0KU1VNTUFSWTpUZXN0DQpUUkFOU1A6T1BBUVVFDQpYLUFQUExFLVRSQVZFTC1BRFZJU09SWS1CRUhBVklPUjpBVVRPTUFUSUMNCkVORDpWRVZFTlQNCkVORDpWQ0FMRU5EQVI="
-            }
-        ]
-    }
-}
-```
 
 ### Message Received!
 And now we’re done!  The message will be received by each of the recipients included in the Transmissions API with the calendar invitation that we sent.
+
+
+## Using the InviteEmailer Python application
+
+To use the Python application, you can clone this repo and call the `sendInvite` function from `InviteEmailer.py`.  The application accepts the following parameters:
+
+* apiKey (string):  SparkPost API Key
+* recipient:  A dictionary of recipient / attendee details
+  * attendeeName (string):  The name of the recipient
+  * attendeeEmail (string):  The eamil address of the recipient
+* event:  A ditionary of event details
+  * eventTitle (string):  The title of the event
+  * eventDescription (string):  The description of the event
+  * eventDate (datetime.date):  The date of the event
+  * eventStartTime (datetime.time):  The start time of the event (in UTC)
+  * eventEndTime (datetime.time):  The end time of the event (in UTC)
+  * organizerName (string):  The name of the event organizer
+  * organizerEmail (string):  The email address of the event organizer
+  * msgFromAddress (string):  The from address that should be used when sending the message from SparkPost
+
+An example can be found below (make sure to update to use your API key):
+
+```Python
+import InviteEmailer
+import datetime
+
+apiKey = "SPARKPOST_API_KEY"
+
+recipient = {
+    "attendeeName": "Jane Doe",
+    "attendeeEmail": "jane.doe@example.com"
+}
+
+event = {
+    "eventTitle": "Awesome Sales Demo",
+    "eventDescription": "This is a meeting with our Sales team.",
+    "eventDate": datetime.date(2021, 4, 15),
+    "eventStartTime": datetime.time(22, 00, 00),  # Time in UTC
+    "eventEndTime": datetime.time(23, 00, 00),  # Time in UTC
+    "organizerName": "Sales Team",
+    "organizerEmail": "sales@company.com",
+    "msgFromAddress": "sales@sparkpost.sendingdomain.com"
+}
+
+uuid = InviteEmailer.sendInvite(
+    apiKey=apiKey,
+    recipient=recipient,
+    event=event
+)
+```
 
