@@ -2,37 +2,51 @@ from sparkpost import SparkPost
 import uuid
 import base64
 import datetime
+from icalendar import Calendar, Event
 
 
 def genCalInvite(startDate, endDate, organizerName, organizerEmail, attendeeName, attendeeEmail
                  , createdDate, uuidVal, eventTitle, eventDescription):
-    calInvite = "" \
-                "BEGIN:VCALENDAR" + "\n" \
-                "VERSION:2.0" + "\n" \
-                "CALSCALE:GREGORIAN" + "\n" \
-                "METHOD:REQUEST" + "\n" \
-                "BEGIN:VEVENT" + "\n" \
-                "DTSTART:" + startDate + "\n" \
-                "DTEND:" + endDate + "\n" \
-                "DTSTAMP:20190109T212441Z" + "\n" \
-                "ORGANIZER;CN=" + organizerName + ":mailto:" + organizerEmail + "\n" \
-                "UID:" + uuidVal + "\n" \
-                "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE" + "\n" \
-                ";CN=" + attendeeName + ";X-NUM-GUESTS=0:mailto:" + attendeeEmail + "\n" \
-                "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE" + "\n" \
-                ";CN=" + organizerName + ";X-NUM-GUESTS=0:mailto:" + organizerEmail + "\n" \
-                "CREATED:" + createdDate + "\n" \
-                "DESCRIPTION:" + eventDescription + "\n" \
-                "LAST-MODIFIED:" + createdDate + "\n" \
-                "LOCATION:" + "\n" \
-                "SEQUENCE:0" + "\n" \
-                "STATUS:CONFIRMED" + "\n" \
-                "SUMMARY:" + eventTitle + "\n" \
-                "TRANSP:OPAQUE" + "\n" \
-                "X-APPLE-TRAVEL-ADVISORY-BEHAVIOR:AUTOMATIC" + "\n" \
-                "END:VEVENT" + "\n" \
-                "END:VCALENDAR"
-    return calInvite
+    cal = Calendar()
+    cal.add("VERSION", "2.0")
+    cal.add("CALSCALE", "GREGORIAN")
+    cal.add("METHOD", "REQUEST")
+
+    event = Event()
+    event['dtstart'] = startDate
+    event['dtend'] = endDate
+    event.add('organizer', 'MAILTO:' + organizerEmail, parameters={"CN": organizerName})
+    event['uid'] = uuidVal
+    event.add('attendee', 'MAILTO:' + attendeeEmail,
+              parameters={
+                  "CUTYPE": "INDIVIDUAL",
+                  "ROLE": "REQ-PARTICIPANT",
+                  "PARTSTAT": "NEEDS-ACTION",
+                  "RSVP": "TRUE",
+                  "CN": attendeeName,
+                  "X-NUM-GUESTS": "0"
+               })
+    event.add('attendee', 'MAILTO:' + organizerEmail,
+              parameters={
+                  "CUTYPE": "INDIVIDUAL",
+                  "ROLE": "REQ-PARTICIPANT",
+                  "PARTSTAT": "NEEDS-ACTION",
+                  "RSVP": "TRUE",
+                  "CN": organizerName,
+                  "X-NUM-GUESTS": "0"
+              })
+    event.add('created', createdDate)
+    event.add('description', eventDescription)
+    event.add('last-modified', createdDate)
+    event.add('sequence', "0")
+    event.add('status', "CONFIRMED")
+    event.add("summary", eventTitle)
+    event.add("transp", "OPAQUE")
+    event.add("X-APPLE-TRAVEL-ADVISORY-BEHAVIOR", "AUTOMATIC")
+
+    cal.add_component(event)
+
+    return cal.to_ical()
 
 
 def sendMessage(apiKey, eventTitle, eventDescription, attendeeName, attendeeEmail, calendarObj, msgFromAddress):
@@ -87,21 +101,16 @@ def sendInvite(apiKey, recipient, event):
     uuidVal = str(uuid.uuid4())  # Create unique ID for calendar event
 
     # Construct Dates
-    startDate = '{:02d}{:02d}{:02d}T{:02d}{:02d}{:02d}Z'.format(eventDate.year, eventDate.month, eventDate.day,
-                                                          eventStartTime.hour, eventStartTime.minute, eventStartTime.second)
-    endDate = '{:02d}{:02d}{:02d}T{:02d}{:02d}{:02d}Z'.format(eventDate.year, eventDate.month, eventDate.day,
-                                                          eventEndTime.hour, eventEndTime.minute, eventEndTime.second)
+    startDate = eventDate.strftime("%Y%m%dT") + eventStartTime.strftime("%H%M%SZ")
+    endDate = eventDate.strftime("%Y%m%dT") + eventEndTime.strftime("%H%M%SZ")
     currentDate = datetime.datetime.now()
-    createdDate = '{:02d}{:02d}{:02d}T{:02d}{:02d}{:02d}Z'.format(currentDate.year, currentDate.month, currentDate.day,
-                                                          currentDate.hour, currentDate.minute, currentDate.second)
 
     # Generate Calendar Invitation
-    calInvite = genCalInvite(startDate, endDate, organizerName, organizerEmail, attendeeName, attendeeEmail, createdDate
+    calInvite = genCalInvite(startDate, endDate, organizerName, organizerEmail, attendeeName, attendeeEmail, currentDate
                              , uuidVal, eventTitle, eventDescription)
 
     # Base64 encode calendar invite
-    calInviteBytes = calInvite.encode('ascii')  # Convert calendar invite into bytes
-    base64Bytes = base64.b64encode(calInviteBytes)  # Base64 encode the invite bytes
+    base64Bytes = base64.b64encode(calInvite)  # Base64 encode the invite bytes
     calObj = base64Bytes.decode('ascii')  # Convert encode back into ASCII, store as calendar object
 
     # Send Calendar Invite
