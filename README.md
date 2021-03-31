@@ -16,7 +16,7 @@ The steps for sending a calendar invite through SparkPost are:
 ### Creating a Calendar Invitation
 To create a calendar invitation, you will need to create an iCalendar file.  For this example, the vCalendar format is used, of which an example can be found in the Samples folder.  The iCalendar file is where we define the attributes of the meeting, such as the start and end time. 
 
-In the Python application, the function `genCalInvite` is used to construct an invitation from the sample using the event and recipient details that are passed into the script.  The function then outputs the constructed invitation.
+In the Python application, the function `genCalInvite` leverages the `icalendar` package to construct an invitation from the sample using the event and recipient details that are passed into the script.  The function then outputs the constructed invitation.
 
 It is important to ensure that a unique UID is assigned for the event.  In the Python application, a unique UID is generated for the calendar event by leveraging the `uuid` package in Python, which is then included in the iCalendar file.
 
@@ -28,14 +28,13 @@ uuidVal = str(uuid.uuid4())  # Create unique ID for calendar event
 
 
 ### Encoding the Invitation
-The next step is to base64 encode the calendar invitation.  In this project, the `base64` package in Python is used to encode the invitation object.
+The next step is to base64 encode the calendar invitation.  We need to base64 encode the iCalendar file because SparkPost requires all attachments to be carried as base64.  In this project, the `base64` package in Python is used to encode the invitation object.
 
 :Relevant Code Here
 ```Python
 import base64
 
-calInviteBytes = calInvite.encode('ascii')  # Convert calendar invite into bytes
-base64Bytes = base64.b64encode(calInviteBytes)  # Base64 encode the invite bytes
+base64Bytes = base64.b64encode(calInvite)  # Base64 encode the invite bytes
 calObj = base64Bytes.decode('ascii')  # Convert encode back into ASCII, store as calendar object
 ```
 
