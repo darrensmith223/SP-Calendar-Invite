@@ -48,6 +48,7 @@ We are now ready to send the invite through SparkPost.  To do this, we will use 
 And now we’re done!  The message will be received by each of the recipients included in the Transmissions API with the calendar invitation that we sent.
 
 
+
 ## Using the InviteEmailer Python application
 
 To use the Python application, you can clone this repo and call the `sendInvite` function from `InviteEmailer.py`.  The application accepts the following parameters:
@@ -66,7 +67,9 @@ To use the Python application, you can clone this repo and call the `sendInvite`
   * organizerEmail (string):  The email address of the event organizer
   * msgFromAddress (string):  The from address that should be used when sending the message from SparkPost
 
+
 An example can be found below (make sure to update to use your API key):
+
 
 ```Python
 import InviteEmailer
