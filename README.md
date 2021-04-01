@@ -30,7 +30,6 @@ uuidVal = str(uuid.uuid4())  # Create unique ID for calendar event
 ### Encoding the Invitation
 The next step is to base64 encode the calendar invitation.  We need to base64 encode the iCalendar file because SparkPost requires all attachments to be carried as base64.  In this project, the `base64` package in Python is used to encode the invitation object.
 
-:Relevant Code Here
 ```Python
 import base64
 
